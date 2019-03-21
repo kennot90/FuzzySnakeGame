@@ -30,16 +30,28 @@ class FuzzyRulesController:
         self.old_snake_pos_x = 0
 
 
+    ##All moves are dependant on the previous move that the snake has performed
+    ##If the snake previous move is right. the only direciton you can move is UP, RIGHT, DOWN, you can't move left.
+    
     def mf_pm_right(self):
-        '''if the previous move is RIGHT, the only direciton
+        '''the only direciton
         you can move is UP, RIGHT, DOWN'''
         self.next_move_pm_right = ctrl.Consequent(np.arange(0, 101, 1), 'Next Direction')
-        self.next_move_pm_right['up'] = fuzz.trapmf(self.next_move_pm_right.universe,[0,0,25, 40])
+        # the numbers are based on the range where it should move up, right or down. The range is between 0 to 100 as shown above.
+        self.next_move_pm_right['up'] = fuzz.trapmf(self.next_move_pm_right.universe,[0,0,25, 40]) 
         self.next_move_pm_right['right'] = fuzz.trimf(self.next_move_pm_right.universe,[25,50,75])
         self.next_move_pm_right['down'] = fuzz.trapmf(self.next_move_pm_right.universe,[60,75,100,100])
 
+        #This is the place where the snake finds out the location of the food based on the angle. 
+        #We use a full circle angle between -180 degrees to 180 degrees
         self.food_loc = ctrl.Antecedent(np.arange(-181, 181, 1), 'food_loc')
         '''Based on a clock with respect the the snake head'''
+        
+        #Since the snake head is in the right direction, if the food location is up, it means that the food is directly in front of the snake.
+        #Therefore, the obvious choice is to continue moving right. As such the angle we found best is -50 degrees to 50 degrees
+        #Likewise, the food location is on the snake's right , then the optimal angle I have found is 45 to 180 degrees.
+        #Lastly, if the food location on the snake's left, the optimal angle I have found is -45 degrees to -180 degrees.
+        
         self.food_loc['up'] = fuzz.trimf(self.food_loc.universe,[-50,0, 50])
         self.food_loc['right'] = fuzz.trimf(self.food_loc.universe,[45,135,181])
         self.food_loc['left'] = fuzz.trimf(self.food_loc.universe, [-181,-135,-45])
@@ -58,17 +70,23 @@ class FuzzyRulesController:
         # self.rule5 = ctrl.Rule(self.collison_ang['90'], self.next_move_pm_right['up'])
         # self.rule6 = ctrl.Rule(self.collison_ang['-90'], self.next_move_pm_right['down'])
 
-
+        #Collison Angle _ 2 defines the surrounding area of the snake. 
+        #If it is 0 degrees, it means that there is an obstacle in front of snake.
+        #If it is 90 degrees, it means that there is an obstacle on the right of the snake.
+        #If it is -90 degrees, it means that there is an obstacle on the left of the snake.
+        
         self.collison_ang_2 = ctrl.Antecedent(np.arange(-181, 181, 1), 'collison_ang_2')
         '''Based on a clock with respect the the snake head'''
         self.collison_ang_2['0'] = fuzz.trapmf(self.collison_ang_2.universe,[-90,-45,45,90])
         self.collison_ang_2['90'] = fuzz.trimf(self.collison_ang_2.universe,[45,90,135])
         self.collison_ang_2['-90'] = fuzz.trimf(self.collison_ang_2.universe, [-135,-90,-45])
 
+        #As such, based on the collion, we will perform the evasive maneuvers
         self.rule7 = ctrl.Rule(self.collison_ang_2['0'], self.next_move_pm_right['right'])
         self.rule8 = ctrl.Rule(self.collison_ang_2['90'], self.next_move_pm_right['up'])
         self.rule9 = ctrl.Rule(self.collison_ang_2['-90'], self.next_move_pm_right['down'])
 
+        
         self.weight_snake = ctrl.Antecedent(np.arange(-10,10,1),'weight_snake')
         self.weight_snake['left'] = fuzz.trapmf(self.weight_snake.universe,[-10,-10,-5,0])
         self.weight_snake['right'] = fuzz.trapmf(self.weight_snake.universe,[0,5,10,10])
@@ -194,7 +212,7 @@ class FuzzyRulesController:
         self.rule12 = ctrl.Rule(self.spiral_snake['-90'], self.next_move_pm_up['right'])
         self.rule13= ctrl.Rule(self.spiral_snake['90'], self.next_move_pm_up['left'])
         self.rule14= ctrl.Rule(self.spiral_snake['0'], self.next_move_pm_up['up'])
-###############################################################################################
+##########################################################################################
     def mf_pm_down(self):
         '''if the previous move is DOWN, the only direciton
         you can move is DOWN, LEFT, RIGHT'''
@@ -249,7 +267,7 @@ class FuzzyRulesController:
         self.rule12 = ctrl.Rule(self.spiral_snake['-90'], self.next_move_pm_down['left'])
         self.rule13= ctrl.Rule(self.spiral_snake['90'], self.next_move_pm_down['right'])
         self.rule14= ctrl.Rule(self.spiral_snake['0'], self.next_move_pm_down['down'])
-###############################################################################################
+##########################################################################################
 
     def get_angle_pm_right(self,food_y, food_x, snake_y,snake_x):
         '''Angle is based on the 4 quadrant
@@ -310,7 +328,7 @@ class FuzzyRulesController:
         if angle >= -180 and angle <= -90:
             final_angle = 270+angle
         return int(final_angle)
-
+##############################################################################################
     #Calculate Mahatten Distance
     #Put in a list of x and y values
     def manhatten_distance(self, snake_x , snake_y):
@@ -333,7 +351,7 @@ class FuzzyRulesController:
         print(snake_x)
         print(snake_y)
         return snake_x,snake_y
-
+##########################################################################################
     def weight_snake_pm_up(self,snake_x , snake_y):
         snake_pos = []
         left = 0
@@ -435,7 +453,7 @@ class FuzzyRulesController:
         overall = ((right-left)/(right + left)) * 10
         print(overall)
         return overall
-
+##########################################################################################
     def spiral_pm_right(self,snake_x , snake_y):
         angle_of_snake_body = []
         x_head = snake_x[0]
@@ -514,7 +532,7 @@ class FuzzyRulesController:
             elif angle ==0:
                 print('Spiral Angle is' + str(angle))
                 return angle
-
+##########################################################################################
 
     def perform_next_move(self, snake, food, bricks):
         overall_rules = []
@@ -559,7 +577,6 @@ class FuzzyRulesController:
                                 else:
                                     pass
                     if indicator == 1:
-                        print('yeah')
                         overall_weight = self.weight_snake_pm_right(snake_x,snake_y)
                         print("Overall Weight is " + str(overall_weight))
                         spiral_angle = self.spiral_pm_right(snake_x,snake_y)
@@ -571,7 +588,6 @@ class FuzzyRulesController:
                         next_move_crtl_fuzzy.input['weight_snake'] = overall_weight
                         next_move_crtl_fuzzy.input['spiral_snake'] = spiral_angle
                     elif indicator >= 2:
-                        print('bah')
                         overall_weight = self.weight_snake_pm_right(snake_x,snake_y)
                         spiral_angle = self.spiral_pm_right(snake_x,snake_y)
                         overall_rules.extend((self.rule7, self.rule8, self.rule9,self.rule12,self.rule13,self.rule14))
@@ -631,7 +647,6 @@ class FuzzyRulesController:
                                 else:
                                     pass
                     if indicator == 1:
-                        print('yeah')
                         overall_weight = self.weight_snake_pm_left(snake_x,snake_y)
                         spiral_angle = self.spiral_pm_left(snake_x,snake_y)
                         overall_rules.extend((self.rule1, self.rule2, self.rule3,self.rule10,self.rule11,self.rule12,self.rule13,self.rule14))
@@ -643,7 +658,6 @@ class FuzzyRulesController:
                         next_move_crtl_fuzzy.input['spiral_snake'] = spiral_angle
 
                     elif indicator >= 2:
-                        print('bah')
                         overall_weight = self.weight_snake_pm_left(snake_x,snake_y)
                         spiral_angle = self.spiral_pm_left(snake_x,snake_y)
                         overall_rules.extend((self.rule7, self.rule8, self.rule9,self.rule12,self.rule13,self.rule14))
@@ -702,7 +716,6 @@ class FuzzyRulesController:
                                 else:
                                     pass
                     if indicator == 1:
-                        print('yeah')
                         overall_weight = self.weight_snake_pm_up(snake_x,snake_y)
                         spiral_angle = self.spiral_pm_up(snake_x,snake_y)
                         overall_rules.extend((self.rule1, self.rule2, self.rule3,self.rule10,self.rule11,self.rule12,self.rule13,self.rule14))
@@ -714,7 +727,6 @@ class FuzzyRulesController:
                         next_move_crtl_fuzzy.input['spiral_snake'] = spiral_angle
 
                     elif indicator >= 2:
-                        print('bah')
                         overall_weight = self.weight_snake_pm_up(snake_x,snake_y)
                         spiral_angle = self.spiral_pm_up(snake_x,snake_y)
                         overall_rules.extend((self.rule7, self.rule8, self.rule9,self.rule12,self.rule13,self.rule14))
@@ -774,7 +786,6 @@ class FuzzyRulesController:
                                 else:
                                     pass
                     if indicator == 1:
-                        print('yeah')
                         overall_weight = self.weight_snake_pm_down(snake_x,snake_y)
                         spiral_angle = self.spiral_pm_down(snake_x,snake_y)
                         overall_rules.extend((self.rule1, self.rule2, self.rule3,self.rule10,self.rule11,self.rule12,self.rule13,self.rule14))
@@ -786,7 +797,6 @@ class FuzzyRulesController:
                         next_move_crtl_fuzzy.input['spiral_snake'] = spiral_angle
 
                     elif indicator >= 2:
-                        print('bah')
                         overall_weight = self.weight_snake_pm_down(snake_x,snake_y)
                         spiral_angle = self.spiral_pm_down(snake_x,snake_y)
                         overall_rules.extend((self.rule7, self.rule8, self.rule9,self.rule12,self.rule13,self.rule14))
