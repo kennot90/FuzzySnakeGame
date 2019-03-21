@@ -85,8 +85,10 @@ class FuzzyRulesController:
         self.rule7 = ctrl.Rule(self.collison_ang_2['0'], self.next_move_pm_right['right'])
         self.rule8 = ctrl.Rule(self.collison_ang_2['90'], self.next_move_pm_right['up'])
         self.rule9 = ctrl.Rule(self.collison_ang_2['-90'], self.next_move_pm_right['down'])
-
         
+        #this is a simplistic way of determining which side of the snake is heavier.
+        #As such, if the left side of the snake is heavier the snake will tend to move on the right
+        #what weight of the snake 
         self.weight_snake = ctrl.Antecedent(np.arange(-10,10,1),'weight_snake')
         self.weight_snake['left'] = fuzz.trapmf(self.weight_snake.universe,[-10,-10,-5,0])
         self.weight_snake['right'] = fuzz.trapmf(self.weight_snake.universe,[0,5,10,10])
@@ -94,6 +96,11 @@ class FuzzyRulesController:
         self.rule10 = ctrl.Rule(self.weight_snake['left'], self.next_move_pm_right['down'])
         self.rule11= ctrl.Rule(self.weight_snake['right'], self.next_move_pm_right['up'])
 
+        #This is to determine the sprial of the snake.
+        #Upon critical thinking, it is found that with different spirals, there are different ways to get out of the spiral.
+        #if the spiral is clockwise, you move up
+        #if the spiral is anti-clockwise, you move down.
+        #note that this is in reference to the snake previous move.
         self.spiral_snake = ctrl.Antecedent(np.arange(-91,91,1),'spiral_snake')
         self.spiral_snake['-90'] = fuzz.trimf(self.spiral_snake.universe,[-91,-90,-89])
         self.spiral_snake['90'] = fuzz.trimf(self.spiral_snake.universe,[89,90,91])
