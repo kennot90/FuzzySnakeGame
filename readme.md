@@ -6,9 +6,7 @@ Previously, it has been mostly used in Washing Machines to check if the clothes 
 
 Now, it can be used to empower rule based systems by implementing certain elements of fuzziness to the recommendation systems. It adds robustness to the recommendation system.
 
-Of course, we have use it to code automatic control of the snake which we have done so.
-
-If you have any questions pertaining the fuzzy rules, do not hesitate to contact me.
+If you have any questions pertaining the fuzzy rules for this snake game, do not hesitate to contact me.
 
 # Introduction
 Snake or Worm was first introduced in 1998 on the Nokia platform. Ever since, there is a surge in the interest in this game. The controls are intuitive, and the gameplay is simple yet addictive. The gameplay consists of the player controlling a snake to eat an item which in turn makes the snake longer. The rules of the game are such that the snake must not collide with its own body and a barrier, typically a wall, if it exists.
