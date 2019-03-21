@@ -8,8 +8,7 @@ import math as m
 
 
 ###Technical Quick README###
-
-''' The code due to the duplicate implementation of the Fuzzy rules based on the direction that the snake head is moving facing'''
+##The code due to the duplicate implementation of the Fuzzy rules based on the direction that the snake head is moving facing##
 
 
 #To Calculate the angle between 2 points
